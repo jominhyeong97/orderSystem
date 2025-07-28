@@ -1,0 +1,5 @@
+#spring.application.name=ordersystem
+
+spring:
+  profiles:
+    active: local
