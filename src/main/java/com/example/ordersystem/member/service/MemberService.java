@@ -54,11 +54,9 @@ public class MemberService {
                 check = false;
             }
         }
-
         if(!check) {
             throw new IllegalArgumentException("비밀번호 또는 이메일 불일치.");
         }
-
         return optionalMember.get();
 
     }

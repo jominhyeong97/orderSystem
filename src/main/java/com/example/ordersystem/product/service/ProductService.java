@@ -57,8 +57,6 @@ public class ProductService {
                     .key(fileName)
                     .contentType(image.getContentType())
                     .build();
-
-
             try {
 
                 s3Client.putObject(putObjectRequest, RequestBody.fromBytes(image.getBytes()));

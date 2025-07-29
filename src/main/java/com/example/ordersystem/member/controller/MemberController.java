@@ -70,7 +70,6 @@ public class MemberController {
 //        rt 검증로직
         Member member = jwtTokenProvider.validateRt(refreshTokenDto.getRefreshToken());
 //        at 신규생성
-
         String accessToken = jwtTokenProvider.createAtToken(member);
         String refreshToken = jwtTokenProvider.createRtToken(member);
 
