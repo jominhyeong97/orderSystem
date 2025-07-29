@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,11 +66,25 @@ public class MemberController {
 
 //    rt를 통한 at 갱신 요청
     @PostMapping("/refresh-at")
-    public ResponseEntity<?> generateNewAt() {
+    public ResponseEntity<?> generateNewAt(@Valid @RequestBody RefreshTokenDto refreshTokenDto) {
 //        rt 검증로직
+        Member member = jwtTokenProvider.validateRt(refreshTokenDto.getRefreshToken());
 //        at 신규생성
 
-        return null;
+        String accessToken = jwtTokenProvider.createAtToken(member);
+        String refreshToken = jwtTokenProvider.createRtToken(member);
+
+        return new ResponseEntity<>(CommonDto.builder()
+                .result(
+                        LoginResDto.builder()
+                                .accessToken(accessToken)
+                                .refreshToken(refreshToken)
+                                .build()
+                )
+                .status_message("토큰 ok")
+                .status_code(HttpStatus.OK.value())
+                .build()
+                ,HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
