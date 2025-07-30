@@ -2,11 +2,9 @@ package com.example.ordersystem.product.domain;
 
 import com.example.ordersystem.common.domain.BaseTimeEntity;
 import com.example.ordersystem.member.domain.Member;
+import com.example.ordersystem.product.dto.ProductUpdateDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Entity
@@ -14,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @Getter
 @Builder
+@Setter
 
 public class Product extends BaseTimeEntity {
     @Id
@@ -33,6 +32,17 @@ public class Product extends BaseTimeEntity {
     public void updateImageUrl(String url) {
         this.imagePath = url;
 
+    }
+
+    public void updateProduct(ProductUpdateDto productUpdateDto) {
+        this.name = productUpdateDto.getName();
+        this.category = productUpdateDto.getCategory();
+        this.price = productUpdateDto.getPrice();
+        this.stockQuantity = productUpdateDto.getStockQuantity();
+    }
+
+    public void updateStockQuantity(Integer orderQuantity) {
+        this.stockQuantity = this.stockQuantity - orderQuantity;
     }
 
 

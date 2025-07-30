@@ -7,6 +7,7 @@ import com.example.ordersystem.product.domain.Product;
 import com.example.ordersystem.product.dto.ProductCreateDto;
 import com.example.ordersystem.product.dto.ProductResDto;
 import com.example.ordersystem.product.dto.ProductSearchDto;
+import com.example.ordersystem.product.dto.ProductUpdateDto;
 import com.example.ordersystem.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -43,15 +44,13 @@ public class ProductService {
 
     public Long create(ProductCreateDto productCreateDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Member member = memberRepository.findByEmail(email).orElseThrow(()->new EntityNotFoundException("유저업ㅄ음"));
+        Member member = memberRepository.findByEmail(email).orElseThrow(()->new EntityNotFoundException("유저없음"));
         Product product = productRepository.save(productCreateDto.toEntity(member));
 
         MultipartFile image = productCreateDto.getProductImage();
-
         if(image != null) {
 
             String fileName = "product-" + product.getId() + "-profileImage-" + image.getOriginalFilename();
-
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fileName)
@@ -68,6 +67,45 @@ public class ProductService {
             String imgUrl = s3Client.utilities().getUrl(a->a.bucket(bucketName).key(fileName)).toExternalForm();
             product.updateImageUrl(imgUrl);
 
+        }
+        return product.getId();
+    }
+
+    public Long productUpdate(ProductUpdateDto productUpdateDto,Long productId) {
+
+        Product product = productRepository.findById(productId).orElseThrow(()->new EntityNotFoundException("값없음"));
+
+        MultipartFile image = productUpdateDto.getProductImage();
+        product.updateProduct(productUpdateDto);
+
+        if(image != null && !image.isEmpty()) {
+
+//            기존이미지 삭제 : 파일명으로 삭제
+            String imgURl = product.getImagePath();
+            String fileName = imgURl.substring(imgURl.lastIndexOf("/")+1);
+            s3Client.deleteObject(a->a.bucket(bucketName).key(fileName));
+
+//            신규이미지 등록
+
+            String newFileName = "product-" + product.getId() + "-profileImage-" + image.getOriginalFilename();
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(newFileName)
+                    .contentType(image.getContentType())
+                    .build();
+            try {
+                s3Client.putObject(putObjectRequest, RequestBody.fromBytes(image.getBytes()));
+            }
+            catch (Exception e) {
+                throw new IllegalArgumentException("이미지 업로드 실패");
+            }
+
+            String newImgUrl = s3Client.utilities().getUrl(a->a.bucket(bucketName).key(newFileName)).toExternalForm();
+            product.updateImageUrl(newImgUrl);
+
+        }else {
+//            s3에서 이미지 삭제 후 url 갱신
+            product.updateImageUrl(null);
         }
         return product.getId();
     }
@@ -104,5 +142,7 @@ public class ProductService {
     public ProductResDto findById(Long id) {
         return ProductResDto.fromEntity(productRepository.findById(id).orElseThrow(()->new EntityNotFoundException("해당 값 없습니다.")));
     }
+
+
 
 }

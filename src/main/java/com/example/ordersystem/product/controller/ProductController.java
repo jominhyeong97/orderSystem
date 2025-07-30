@@ -3,6 +3,7 @@ package com.example.ordersystem.product.controller;
 import com.example.ordersystem.common.dto.CommonDto;
 import com.example.ordersystem.product.dto.ProductCreateDto;
 import com.example.ordersystem.product.dto.ProductSearchDto;
+import com.example.ordersystem.product.dto.ProductUpdateDto;
 import com.example.ordersystem.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,19 @@ public class ProductController {
 
 
     }
+
+    @PutMapping("/update/{productId}")
+    public ResponseEntity<?> productUpdate(@Valid @ModelAttribute ProductUpdateDto productUpdateDto, @PathVariable Long productId) {
+        Long id = productService.productUpdate(productUpdateDto,productId);
+        return new ResponseEntity<>(CommonDto
+                .builder()
+                .result(id)
+                .status_message("수정완료")
+                .status_code(HttpStatus.OK.value())
+                .build()
+                , HttpStatus.OK);
+    }
+
 
 
 
