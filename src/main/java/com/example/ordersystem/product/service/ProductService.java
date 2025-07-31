@@ -1,6 +1,7 @@
 package com.example.ordersystem.product.service;
 
 import com.example.ordersystem.common.config.AwsS3Config;
+import com.example.ordersystem.common.service.StockInventoryService;
 import com.example.ordersystem.member.domain.Member;
 import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.product.domain.Product;
@@ -36,9 +37,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductService {
-    public final ProductRepository productRepository;
-    public final MemberRepository memberRepository;
-    public final S3Client s3Client;
+    private final ProductRepository productRepository;
+    private final MemberRepository memberRepository;
+    private final S3Client s3Client;
+    private final StockInventoryService stockInventoryService;
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
@@ -68,6 +70,8 @@ public class ProductService {
             product.updateImageUrl(imgUrl);
 
         }
+//        상품등록시 redis에 재고세팅
+        stockInventoryService.makeStockQuantity(product.getId(),product.getStockQuantity());
         return product.getId();
     }
 

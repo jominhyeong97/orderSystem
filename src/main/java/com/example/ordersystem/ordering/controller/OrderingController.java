@@ -3,6 +3,7 @@ package com.example.ordersystem.ordering.controller;
 import com.example.ordersystem.common.dto.CommonDto;
 import com.example.ordersystem.ordering.dto.OrderCreateDto;
 import com.example.ordersystem.ordering.service.OrderingService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,10 @@ public class OrderingController {
 
     public final OrderingService orderingService;
 
+
     @PostMapping("create")
-    public ResponseEntity<?> create(@Valid @RequestBody List<OrderCreateDto> orderCreateDtos) {
-        Long id = orderingService.create(orderCreateDtos);
+    public ResponseEntity<?> createConcurrent(@Valid @RequestBody List<OrderCreateDto> orderCreateDtos) {
+        Long id = orderingService.createConcurrent(orderCreateDtos);
         return new ResponseEntity<>(CommonDto
                 .builder()
                 .result(id)
@@ -45,6 +47,18 @@ public class OrderingController {
                 .builder()
                 .result(orderingService.findAll())
                 .status_message("주문목록조회성공")
+                .status_code(HttpStatus.CREATED.value())
+                .build()
+                , HttpStatus.CREATED);
+    }
+
+    @GetMapping("/myorders")
+    public ResponseEntity<?> myOrders() {
+
+        return new ResponseEntity<>(CommonDto
+                .builder()
+                .result(orderingService.myOrders())
+                .status_message("내 주문목록조회 성공")
                 .status_code(HttpStatus.CREATED.value())
                 .build()
                 , HttpStatus.CREATED);
