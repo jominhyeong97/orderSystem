@@ -45,6 +45,10 @@ public class Product extends BaseTimeEntity {
         this.stockQuantity = this.stockQuantity - orderQuantity;
     }
 
+    public void cancelOrder(int orderQuantity) {
+        this.stockQuantity = this.stockQuantity + orderQuantity;
+    }
+
 
 
 

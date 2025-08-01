@@ -1,6 +1,7 @@
 package com.example.ordersystem.ordering.service;
 
 import com.example.ordersystem.common.domain.OrderStatus;
+import com.example.ordersystem.common.service.SseAlarmService;
 import com.example.ordersystem.common.service.StockInventoryService;
 import com.example.ordersystem.common.service.StockRabbitMQService;
 import com.example.ordersystem.member.domain.Member;
@@ -36,6 +37,7 @@ public class OrderingService {
     public final OrderDetailRepository orderDetailRepository;
     private final StockInventoryService stockInventoryService;
     private final StockRabbitMQService stockRabbitMQService;
+    private final SseAlarmService sseAlarmService;
 
     public Long create(List<OrderCreateDto> orderCreateDtoList) {
 
@@ -68,6 +70,13 @@ public class OrderingService {
             ordering.getOrderDetailList().add(orderDetail); //cascade 적용시
         }
         orderingRepository.save(ordering);
+
+
+
+
+
+
+
         return ordering.getId();
     }
 
@@ -123,9 +132,36 @@ public class OrderingService {
             stockRabbitMQService.publish(orderCreateDto.getProductId(),orderCreateDto.getProductCount());
         }
         orderingRepository.save(ordering);
+//        주문 성공시 admin 유저에게 알림메시지 전송
+        sseAlarmService.publishMessage("admin@naver.com",email,ordering.getId());
 
 
         return ordering.getId();
+    }
+
+
+
+
+    public Ordering cancel(Long id) throws IllegalArgumentException{
+//        ordering의 db 시에 값 변경 canceled
+        Ordering ordering = orderingRepository.findById(id).orElseThrow(()->new EntityNotFoundException("해당 주문번호 없음"));
+
+        if(ordering.getOrderStatus().equals(OrderStatus.CANCELED)) {
+            throw new IllegalArgumentException("이미 취소한 주문입니다.");
+        }
+        ordering.CancelStatus();
+
+        for(OrderDetail orderDetail : ordering.getOrderDetailList()) {
+//            rdb 재고 업데이트
+            Product product = orderDetail.getProduct();
+            product.cancelOrder(orderDetail.getQuantity());
+//        redis에 재고값 증가
+            stockInventoryService.increaseStockQuantity(orderDetail.getProduct().getId(),orderDetail.getQuantity());
+        }
+
+//        rebbitmq에 재고 증가메시지 발행
+
+        return ordering;
     }
 
 }

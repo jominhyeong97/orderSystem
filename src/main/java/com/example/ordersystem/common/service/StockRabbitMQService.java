@@ -15,9 +15,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
 
 @RequiredArgsConstructor
 @Component
@@ -45,6 +42,7 @@ public class StockRabbitMQService {
         Product product = productRepository.findById(dto.getProductId()).orElseThrow(()->new EntityNotFoundException("없습니다."));
         product.updateStockQuantity(dto.getProductCount());
         System.out.println(messageBody);
+
     }
 
 }

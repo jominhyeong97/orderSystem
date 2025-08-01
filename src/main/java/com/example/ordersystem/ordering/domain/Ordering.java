@@ -35,4 +35,8 @@ public class Ordering extends BaseTimeEntity {
     @Builder.Default
     List<OrderDetail> orderDetailList = new ArrayList<>();
 
+    public void CancelStatus() {
+        this.orderStatus = OrderStatus.CANCELED;
+    }
+
 }
